@@ -1,0 +1,106 @@
+<!-- <h1>attempt quiz works!</h1> -->
+
+<div *ngIf="isQuizSubmitted" class="flex-box flex-dir-col mt-10">
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title> Quiz Result </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <!-- <h3>Total Questions : {{ allQuizQuestions?.length }}</h3>
+            <h3>Attempted Questions : {{ attempted }}</h3>
+            <h3>Score : {{ quizScore }} %</h3> -->
+            <h3>Total Questions : {{ quizResult?.totalQuestionCount }}</h3>
+            <h3>Attempted Questions : {{ quizResult?.attemptedQuestionCount }}</h3>
+            <h3>Score : {{ quizResult?.score }} %</h3>
+        </mat-card-content>
+    </mat-card>
+
+    <button mat-raised-button routerLink="/user/" color="accent" class="mt-10">Go To Dashboard</button>
+</div>
+
+<div class="flex-cols mt-10" *ngIf="!isQuizSubmitted && allQuizQuestions">
+    <div class="col ml-10" style="flex: 1"></div>
+    <div class="col" style="flex: 3">
+        <form action="" (ngSubmit)="submitQuiz()">
+            <section class="questions-section">
+                <mat-card class="mb-10">
+                    <mat-card-header>
+                        <mat-card-title>Quiz Name : {{ quizTitle }}</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content></mat-card-content>
+                </mat-card>
+
+                <mat-card *ngFor="let question of allQuizQuestions; let i = index" class="mb-10">
+                    <mat-card-header>
+                        <div class="question-title">
+                            <b>Q{{ i + 1 }}.</b> {{ question.questionContent?.valueOf() | titlecase }}
+                        </div>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="grid-container">
+                            <div class="grid-item">
+                                <input
+                                    type="radio"
+                                    [(ngModel)]="question.givenAnswer"
+                                    [name]="i + ''"
+                                    [value]="question.option1"
+                                />
+                                {{ question.option1 }}
+                            </div>
+                            <div class="grid-item">
+                                <input
+                                    type="radio"
+                                    [(ngModel)]="question.givenAnswer"
+                                    [name]="i + ''"
+                                    [value]="question.option2"
+                                />
+                                {{ question.option2 }}
+                            </div>
+                            <div class="grid-item">
+                                <input
+                                    type="radio"
+                                    [(ngModel)]="question.givenAnswer"
+                                    [name]="i + ''"
+                                    [value]="question.option3"
+                                />
+                                {{ question.option3 }}
+                            </div>
+                            <div class="grid-item">
+                                <input
+                                    type="radio"
+                                    [(ngModel)]="question.givenAnswer"
+                                    [name]="i + ''"
+                                    [value]="question.option4"
+                                />
+                                {{ question.option4 }}
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+
+                <div class="text-center">
+                    <button mat-raised-button color="primary" type="submit">Submit</button>
+                </div>
+            </section>
+        </form>
+    </div>
+    <div class="col mr-10" style="flex: 1">
+        <mat-card class="text-center">
+            <div class="mt-10">
+                <b>
+                    Remaining Time {{ mm.toLocaleString("en-US", { minimumIntegerDigits: 2, useGrouping: false }) }}:{{
+                        ss.toLocaleString("en-US", { minimumIntegerDigits: 2, useGrouping: false })
+                    }}
+                </b>
+            </div>
+            <div class="flex-box mt-10 mb-10">
+                <mat-progress-spinner
+                    mode="determinate"
+                    color="warn"
+                    [value]="(totalRemainingTime / (allQuizQuestions!.length * 2 * 60)) * 100"
+                >
+                </mat-progress-spinner>
+            </div>
+        </mat-card>
+    </div>
+</div>

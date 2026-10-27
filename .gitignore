@@ -1,4 +1,4 @@
 .DS_Store
 .metadata/
-portal/.editorconfig
-portal/.vscode/
+client/.editorconfig
+client/.vscode/
