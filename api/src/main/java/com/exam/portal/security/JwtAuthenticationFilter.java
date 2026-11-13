@@ -28,18 +28,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Autowired
 	private UserDetailsServiceSecurityImpl userDetailsSecurityServiceImpl;
 
+	@Autowired
+	private JwtCookieService jwtCookieService;
+
 	Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
-		final String authHeader = request.getHeader("Authorization");
-		logger.info("header: {}", authHeader);
+		final String jwtToken = resolveToken(request);
 
-		if (authHeader != null && authHeader.startsWith("Bearer ")) {
+		if (jwtToken != null) {
 
-			final String jwtToken = authHeader.substring(7);
 			final String userEmail = jwtService.extractUsernameFromToken(jwtToken);
 
 			if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -58,9 +59,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			}
 
 		} else
-			logger.info("Invalid Header");
+			logger.info("No JWT found in Authorization header or cookie");
 
 		filterChain.doFilter(request, response);
+	}
+
+	/**
+	 * Prefers the standard Authorization header (for API clients) and falls back
+	 * to the HttpOnly cookie used by the browser client.
+	 */
+	private String resolveToken(HttpServletRequest request) {
+		final String authHeader = request.getHeader("Authorization");
+		if (authHeader != null && authHeader.startsWith("Bearer ")) {
+			return authHeader.substring(7);
+		}
+
+		return jwtCookieService.extractToken(request);
 	}
 
 }

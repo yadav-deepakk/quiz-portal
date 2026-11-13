@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.exam.portal.entities.Question;
 import com.exam.portal.entities.Quiz;
@@ -52,6 +53,7 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<Question> getQuestionsOfQuizForAdmin(Long quizId) {
 		Quiz quiz = quizService.getQuizById(quizId).get();
 		List<Question> quesList = new ArrayList<Question>(quiz.getQuestionsList());
@@ -59,6 +61,7 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Set<Question> getQuestionsOfQuiz(Long quizId) {
 		Quiz quiz = quizService.getQuizById(quizId).get();
 		List<Question> quesList = new ArrayList<Question>(quiz.getQuestionsList());

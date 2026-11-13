@@ -44,6 +44,7 @@ class JwtAuthenticationFilterTests {
 		filter = new JwtAuthenticationFilter();
 		ReflectionTestUtils.setField(filter, "jwtService", jwtService);
 		ReflectionTestUtils.setField(filter, "userDetailsSecurityServiceImpl", userDetailsService);
+		ReflectionTestUtils.setField(filter, "jwtCookieService", new JwtCookieService());
 		request = new MockHttpServletRequest();
 		response = new MockHttpServletResponse();
 		chain = new MockFilterChain();
@@ -114,6 +115,47 @@ class JwtAuthenticationFilterTests {
 		assertThat(chain.getRequest()).isNotNull();
 		assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
 		verify(userDetailsService, never()).loadUserByUsername(org.mockito.ArgumentMatchers.anyString());
+	}
+
+	@Test
+	void validTokenInCookieAuthenticatesTheRequest() throws Exception {
+		UserDetails details = User.withUsername("alice").password("pwd").authorities("NORMAL").build();
+		request.setCookies(new jakarta.servlet.http.Cookie(JwtCookieService.COOKIE_NAME, "cookie-token"));
+		when(jwtService.extractUsernameFromToken("cookie-token")).thenReturn("alice");
+		when(userDetailsService.loadUserByUsername("alice")).thenReturn(details);
+		when(jwtService.isTokenValid("cookie-token", details)).thenReturn(true);
+
+		filter.doFilter(request, response, chain);
+
+		assertThat(chain.getRequest()).isNotNull();
+		assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+		assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).isEqualTo(details);
+	}
+
+	@Test
+	void emptyCookieDoesNotAuthenticate() throws Exception {
+		request.setCookies(new jakarta.servlet.http.Cookie(JwtCookieService.COOKIE_NAME, " "));
+
+		filter.doFilter(request, response, chain);
+
+		assertThat(chain.getRequest()).isNotNull();
+		assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+		verify(jwtService, never()).extractUsernameFromToken(org.mockito.ArgumentMatchers.anyString());
+	}
+
+	@Test
+	void authorizationHeaderTakesPrecedenceOverCookie() throws Exception {
+		UserDetails details = User.withUsername("alice").password("pwd").authorities("NORMAL").build();
+		request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer header-token");
+		request.setCookies(new jakarta.servlet.http.Cookie(JwtCookieService.COOKIE_NAME, "cookie-token"));
+		when(jwtService.extractUsernameFromToken("header-token")).thenReturn("alice");
+		when(userDetailsService.loadUserByUsername("alice")).thenReturn(details);
+		when(jwtService.isTokenValid("header-token", details)).thenReturn(true);
+
+		filter.doFilter(request, response, chain);
+
+		assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+		verify(jwtService, never()).extractUsernameFromToken("cookie-token");
 	}
 
 	@Test

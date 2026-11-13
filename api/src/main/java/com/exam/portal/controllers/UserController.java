@@ -27,7 +27,7 @@ import com.exam.portal.services.UserService;
 
 @RestController
 @RequestMapping("/user")
-@CrossOrigin(origins = "http://localhost:4200", methods = { RequestMethod.GET })
+@CrossOrigin(origins = { "http://localhost:4200", "http://localhost:5173", "http://localhost:4173", "http://127.0.0.1:5173" }, methods = { RequestMethod.GET })
 public class UserController {
 	@Autowired
 	private UserService userService;

@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,7 +23,10 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.exam.portal.entities.User;
 import com.exam.portal.repositories.UserRepo;
+import com.exam.portal.security.JwtCookieService;
 import com.exam.portal.support.IntegrationTestSupport;
+
+import jakarta.servlet.http.Cookie;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,6 +43,39 @@ class AuthenticationIntegrationTests extends IntegrationTestSupport {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.username").value("ydeep"))
 				.andExpect(jsonPath("$.jwt").isNotEmpty());
+	}
+
+	@Test
+	void loginWritesJwtToAnHttpOnlyCookie() throws Exception {
+		MvcResult result = mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+				.content(loginJson("ydeep", "test")))
+				.andExpect(status().isOk())
+				.andExpect(cookie().exists(JwtCookieService.COOKIE_NAME))
+				.andExpect(cookie().httpOnly(JwtCookieService.COOKIE_NAME, true))
+				.andExpect(cookie().path(JwtCookieService.COOKIE_NAME, "/"))
+				.andReturn();
+
+		Cookie jwtCookie = result.getResponse().getCookie(JwtCookieService.COOKIE_NAME);
+		assertThat(jwtCookie).isNotNull();
+		assertThat(jwtCookie.getValue()).isNotBlank();
+
+		mockMvc.perform(get("/user/current-user").cookie(jwtCookie))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.username").value("ydeep"));
+	}
+
+	@Test
+	void logoutClearsTheJwtCookie() throws Exception {
+		MvcResult loginResult = mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+				.content(loginJson("ydeep", "test")))
+				.andExpect(status().isOk())
+				.andReturn();
+
+		Cookie jwtCookie = loginResult.getResponse().getCookie(JwtCookieService.COOKIE_NAME);
+
+		mockMvc.perform(post("/api/auth/logout").cookie(jwtCookie))
+				.andExpect(status().isNoContent())
+				.andExpect(cookie().maxAge(JwtCookieService.COOKIE_NAME, 0));
 	}
 
 	@Test
