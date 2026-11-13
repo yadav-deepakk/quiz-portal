@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@layer base {
+    html {
+        @apply bg-slate-50 text-slate-900 antialiased;
+    }
+
+    body {
+        @apply min-h-screen;
+    }
+
+    button,
+    a {
+        @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500;
+    }
+
+    @keyframes toast-slide-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .toast {
+        animation: toast-slide-in 150ms ease-out;
+    }
+
+    ::selection {
+        @apply bg-indigo-500/20;
+    }
+}
+
+@layer components {
+    .card {
+        @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+    }
+
+    .card-body {
+        @apply p-5 sm:p-6;
+    }
+
+    .btn,
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger,
+    .btn-ghost {
+        @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-primary {
+        @apply bg-indigo-600 text-white hover:bg-indigo-700;
+    }
+
+    .btn-secondary {
+        @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-100;
+    }
+
+    .btn-danger {
+        @apply bg-rose-600 text-white hover:bg-rose-700;
+    }
+
+    .btn-ghost {
+        @apply text-slate-600 hover:bg-slate-100;
+    }
+
+    .label {
+        @apply mb-1 block text-sm font-medium text-slate-700;
+    }
+
+    .input {
+        @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100;
+    }
+
+    .field {
+        @apply mb-4;
+    }
+
+    .page-title {
+        @apply text-2xl font-bold tracking-tight text-slate-900;
+    }
+
+    .page-subtitle {
+        @apply mt-1 text-sm text-slate-500;
+    }
+
+    .badge {
+        @apply inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-slate-600;
+    }
+
+    .sidebar-link {
+        @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900;
+    }
+
+    .sidebar-link-active {
+        @apply bg-indigo-50 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-700;
+    }
+}
