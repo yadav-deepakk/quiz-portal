@@ -2,10 +2,11 @@
 
 A full-stack quiz/exam application.
 
-| Part     | Location  | Stack                                         |
-| -------- | --------- | --------------------------------------------- |
-| Frontend | `client/` | Angular 22, Angular Material 22, TypeScript 6 |
-| Backend  | `api/`    | Spring Boot 4.1, Spring Security 7, Java 25   |
+| Part                    | Location  | Stack                                              |
+| ----------------------- | --------- | -------------------------------------------------- |
+| Frontend (new)          | `web/`    | React 19, React Router 7, Tailwind CSS 4, Vite      |
+| Frontend (legacy)       | `client/` | Angular 22, Angular Material 22, TypeScript 6       |
+| Backend                 | `api/`    | Spring Boot 4.1, Spring Security 7, Java 25         |
 
 ## Prerequisites
 
@@ -43,7 +44,40 @@ mvn spring-boot:run
 
 The API is available at `http://localhost:8080`.
 
-## Run the frontend
+## Run the React frontend
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+The UI is available at `http://localhost:5173`. It talks to the API at
+`http://localhost:8080` by default. Set `VITE_API_URL` to point somewhere else:
+
+```bash
+VITE_API_URL=http://localhost:8080 npm run dev
+```
+
+See `web/.env.example`.
+
+### Authentication
+
+The JWT is stored in an **HttpOnly cookie** named `access_token`:
+
+- `POST /api/auth/login` and `POST /api/auth/signup` set the cookie.
+- `POST /api/auth/logout` clears it.
+- Browser requests are sent with `credentials: "include"`, so the token never
+  touches `localStorage` or JavaScript.
+- The backend accepts either the cookie or an `Authorization: Bearer ...` header
+  (useful for API clients and the legacy Angular app).
+
+The cookie is `HttpOnly`, `SameSite=Lax`, and `Path=/`. Set
+`app.jwt.cookie-secure=true` when serving the API over HTTPS. Allowed browser
+origins are `localhost:4200` (Angular), `localhost:5173` (Vite dev), and
+`localhost:4173` (Vite preview).
+
+## Run the legacy Angular frontend
 
 ```bash
 cd client
@@ -57,6 +91,7 @@ The UI is available at `http://localhost:4200`.
 
 ```bash
 cd client && npm run test:coverage   # Vitest + coverage (80% thresholds)
+cd web && npm run build              # TypeScript + production build
 cd api && mvn clean verify           # JUnit + JaCoCo (80% thresholds)
 ```
 
@@ -64,7 +99,7 @@ cd api && mvn clean verify           # JUnit + JaCoCo (80% thresholds)
   `client/coverage/client/index.html`).
 - Backend coverage is written to `api/target/site/jacoco/` (HTML report at
   `api/target/site/jacoco/index.html`).
-- Both builds fail if the configured 80% coverage thresholds are not met.
+- Both coverage builds fail if the configured 80% thresholds are not met.
 
 Backend tests use an H2 in-memory database (`MODE=PostgreSQL`), so they do not
 need a running PostgreSQL server.
